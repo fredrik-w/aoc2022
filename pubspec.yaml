@@ -3,6 +3,5 @@ name: AdventOfCode2022
 dev_dependencies:
   test: ^1.22.0
 
-
 environment:
   sdk: '>=2.18.0 <3.0.0'

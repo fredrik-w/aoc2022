@@ -16,9 +16,14 @@ List<int> elfCalories(String fileName) {
   return elfs;
 }
 
-num part1(String fileName) => elfCalories(fileName).last;
+num part1({String fileName = "input.txt"}) => elfCalories(fileName).last;
 
-num part2(String file) {
-  var elfs = elfCalories(file);
+num part2({String fileName = "input.txt"}) {
+  var elfs = elfCalories(fileName);
   return elfs.sublist(elfs.length - 3).reduce((sum, curr) => sum += curr);
+}
+
+void main(List<String> arguments) {
+  exitCode = 0;
+  stdout.write((Platform.environment["part"] ?? "part1") == "part1" ? part1() : part2());
 }
