@@ -5,14 +5,12 @@ List<int> elfCalories(String fileName) {
 
   var elfs = input.fold(<int>[0], (elfs, calories) {
     if (calories == "") {
-      elfs.add(0);
-    } else {
-      elfs[elfs.length - 1] += int.parse(calories);
+      return elfs..add(0);
     }
+    elfs[elfs.length - 1] += int.parse(calories);
     return elfs;
   });
-  elfs.sort((a, b) => a.compareTo(b));
-  return elfs;
+  return elfs..sort((a, b) => a.compareTo(b));
 }
 
 num part1({String fileName = "input.txt"}) => elfCalories(fileName).last;
@@ -22,5 +20,4 @@ num part2({String fileName = "input.txt"}) {
   return elfs.sublist(elfs.length - 3).reduce((sum, curr) => sum += curr);
 }
 
-void main(List<String> arguments) =>
-    stdout.write((Platform.environment["part"] ?? "part1") == "part1" ? part1() : part2());
+void main(List<String> arguments) => print((Platform.environment["part"] ?? "part1") == "part1" ? part1() : part2());
