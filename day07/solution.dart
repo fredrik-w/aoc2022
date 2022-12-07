@@ -23,42 +23,33 @@ Node parseConsole(List<String> lines) {
   lines.forEach((line) {
     if (line.startsWith("\$ cd")) {
       var name = line.split(" ").last;
-      if (name == "..")
-        current = current.parent!;
+      if (name == "..") current = current.parent!;
       else if (name != "/") current = current.content.firstWhere((e) => e.name == name && e.fileSize == null);
     } else if (line != "\$ ls") {
-      if (line.startsWith("dir"))
-        current.content.add(Node.directory(current, line.split(" ").last));
-      else
-        current.content.add(Node.file(current, line.split(" ").last, int.parse(line.split(" ").first)));
+      if (line.startsWith("dir")) current.content.add(Node.directory(current, line.split(" ").last));
+      else current.content.add(Node.file(current, line.split(" ").last, int.parse(line.split(" ").first)));
     }
   });
 
   return root;
 }
 
-List<Node> findDirectories(Node node) {
-  return node.content.where((n) => n.content.length > 0).fold(
-      [],
-      (nodes, node) => nodes
-        ..add(node)
-        ..addAll(findDirectories(node)));
-}
+List<Node> findDirectories(Node node) => node.content.where((n) => n.content.length > 0).fold(
+    [],
+    (nodes, node) => nodes
+      ..add(node)
+      ..addAll(findDirectories(node)));
 
-int atMost100k(Node root) =>
-    findDirectories(root).map((n) => n.size()).where((size) => size <= 100000).reduce((sum, size) => sum + size);
+num part1({String fileName = "input.txt"}) => findDirectories(parseConsole(readFileToLines(fileName)))
+    .map((n) => n.size())
+    .where((size) => size <= 100000)
+    .reduce((sum, size) => sum + size);
 
-int deletedSize(Node root) {
-  var candidates = findDirectories(root)
-      .map((n) => n.size())
-      .where((size) => size >= 30000000 - (70000000 - root.size()))
-      .toList()
-    ..sort((a, b) => a - b);
-  return candidates.first;
-}
-
-num part1({String fileName = "input.txt"}) => atMost100k(parseConsole(readFileToLines(fileName)));
-
-num part2({String fileName = "input.txt"}) => deletedSize(parseConsole(readFileToLines(fileName)));
+num part2({String fileName = "input.txt"}) => (findDirectories(parseConsole(readFileToLines(fileName)))
+        .map((n) => n.size())
+        .where((size) => size >= 30000000 - (70000000 - parseConsole(readFileToLines(fileName)).size()))
+        .toList()
+      ..sort((a, b) => a - b))
+    .first;
 
 void main(List<String> arguments) => print((Platform.environment["part"] ?? "part1") == "part1" ? part1() : part2());
