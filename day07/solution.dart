@@ -23,11 +23,14 @@ Node parseConsole(List<String> lines) {
   lines.forEach((line) {
     if (line.startsWith("\$ cd")) {
       var name = line.split(" ").last;
-      if (name == "..") current = current.parent!;
+      if (name == "..")
+        current = current.parent!;
       else if (name != "/") current = current.content.firstWhere((e) => e.name == name && e.fileSize == null);
     } else if (line != "\$ ls") {
-      if (line.startsWith("dir")) current.content.add(Node.directory(current, line.split(" ").last));
-      else current.content.add(Node.file(current, line.split(" ").last, int.parse(line.split(" ").first)));
+      if (line.startsWith("dir"))
+        current.content.add(Node.directory(current, line.split(" ").last));
+      else
+        current.content.add(Node.file(current, line.split(" ").last, int.parse(line.split(" ").first)));
     }
   });
 
@@ -45,11 +48,14 @@ num part1({String fileName = "input.txt"}) => findDirectories(parseConsole(readF
     .where((size) => size <= 100000)
     .reduce((sum, size) => sum + size);
 
-num part2({String fileName = "input.txt"}) => (findDirectories(parseConsole(readFileToLines(fileName)))
-        .map((n) => n.size())
-        .where((size) => size >= 30000000 - (70000000 - parseConsole(readFileToLines(fileName)).size()))
-        .toList()
-      ..sort((a, b) => a - b))
-    .first;
+num part2({String fileName = "input.txt"}) {
+  var root = parseConsole(readFileToLines(fileName));
+  return (findDirectories(root)
+          .map((n) => n.size())
+          .where((size) => size >= 30000000 - (70000000 - root.size()))
+          .toList()
+        ..sort((a, b) => a - b))
+      .first;
+}
 
 void main(List<String> arguments) => print((Platform.environment["part"] ?? "part1") == "part1" ? part1() : part2());
