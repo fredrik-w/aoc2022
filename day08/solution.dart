@@ -19,19 +19,10 @@ int countVisibleTrees(List<List<int>> forest) {
   int visibleTrees = forest[0].length + forest[forest.length - 1].length + (forest.length - 2) * 2;
   for (int row = 1; row < forest.length - 1; row++) {
     for (var treeLine = forest[row], col = 1; col < treeLine.length - 1; col++) {
-      if (highestInLine(treeLine.sublist(0, col)) < treeLine[col]) {
-        visibleTrees++;
-        continue;
-      }
-      if (highestInLine(treeLine.sublist(col + 1)) < treeLine[col]) {
-        visibleTrees++;
-        continue;
-      }
-      if (highestInLine(getColumn(forest.sublist(0, row), col)) < treeLine[col]) {
-        visibleTrees++;
-        continue;
-      }
-      if (highestInLine(getColumn(forest.sublist(row + 1), col)) < treeLine[col]) {
+      if (highestInLine(treeLine.sublist(0, col)) < treeLine[col] ||
+          highestInLine(treeLine.sublist(col + 1)) < treeLine[col] ||
+          highestInLine(getColumn(forest.sublist(0, row), col)) < treeLine[col] ||
+          highestInLine(getColumn(forest.sublist(row + 1), col)) < treeLine[col]) {
         visibleTrees++;
         continue;
       }
