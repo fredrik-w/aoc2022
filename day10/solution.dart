@@ -24,8 +24,23 @@ int signalStrength(List<int> cycles) {
       220 * cycles[219];
 }
 
+List<String> renderPixels(List<int> cycles) {
+  List<List<String>> chars = [[], [], [], [], [], []];
+
+  for (int row = 0; row < chars.length; row++) {
+    for (int i = 0; i < 40; i++) {
+      var x = cycles[i + (row * 40)];
+      chars[row].add((i + 1 >= x && i + 1 <= x + 2) ? "#" : ".");
+    }
+  }
+  var rows = chars.map((r) => r.join("")).toList();
+
+  print(rows.join("\n"));
+  return rows;
+}
+
 num part1({String fileName = "input.txt"}) => signalStrength(cycles(readFileToLines(fileName)));
 
-num part2({String fileName = "input.txt"}) => -2;
+List<String> part2({String fileName = "input.txt"}) => renderPixels(cycles(readFileToLines(fileName)));
 
 void main(List<String> arguments) => print((Platform.environment["part"] ?? "part1") == "part1" ? part1() : part2());
