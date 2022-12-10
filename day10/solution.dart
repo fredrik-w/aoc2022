@@ -5,24 +5,16 @@ List<String> readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)
 List<int> cycles(List<String> instructions) {
   List<int> register = <int>[1];
 
-  var index = 0;
   instructions.forEach((inst) {
-    var val = register.last;
-    register.add(val);
-    if (inst.startsWith("addx")) register.add(val + int.parse(inst.split(" ").last));
+    register.add(register.last);
+    if (inst.startsWith("addx")) register.add(register.last + int.parse(inst.split(" ").last));
   });
 
   return register;
 }
 
-int signalStrength(List<int> cycles) {
-  return 20 * cycles[19] +
-      60 * cycles[59] +
-      100 * cycles[99] +
-      140 * cycles[139] +
-      180 * cycles[179] +
-      220 * cycles[219];
-}
+int signalStrength(List<int> cycles) =>
+    [20, 60, 100, 140, 180, 220].map((cycle) => cycle * cycles[cycle - 1]).reduce((sum, v) => sum + v);
 
 List<String> renderPixels(List<int> cycles) {
   List<List<String>> chars = [[], [], [], [], [], []];
@@ -33,10 +25,7 @@ List<String> renderPixels(List<int> cycles) {
       chars[row].add((i + 1 >= x && i + 1 <= x + 2) ? "#" : ".");
     }
   }
-  var rows = chars.map((r) => r.join("")).toList();
-
-  print(rows.join("\n"));
-  return rows;
+  return chars.map((r) => r.join("")).toList();
 }
 
 num part1({String fileName = "input.txt"}) => signalStrength(cycles(readFileToLines(fileName)));
