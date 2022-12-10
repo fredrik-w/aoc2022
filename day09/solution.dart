@@ -56,8 +56,6 @@ int tail(List<String> lines, int knots) {
     }
   });
 
-  //print(visited);
-
   return visited.length;
 }
 
