@@ -2,61 +2,67 @@ import 'dart:io';
 
 List<String> readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)).readAsLinesSync();
 
-class RopeEnd {
+class Knot {
   int x;
   int y;
 
-  RopeEnd(this.x, this.y);
+  Knot(this.x, this.y);
 
   toString() => "${x},${y}";
+  equals(Knot other) => x == other.x && y == other.y;
 }
 
-int tail(List<String> lines) {
-  var head = RopeEnd(0, 0);
-  var tail = RopeEnd(0, 0);
+Knot moveKnot(Knot head, Knot tail) {
+  var x = tail.x, y = tail.y;
+  var dx = head.x - tail.x, dy = head.y - tail.y;
+  if (dy.abs() == 2) {
+    y += 1 * dy.sign;
+    if (dx.abs() > 0) x += 1 * dx.sign;
+  } else if (dx.abs() == 2) {
+    x += 1 * dx.sign;
+    if (dy.abs() > 0) y += 1 * dy.sign;
+  }
+  return Knot(x, y);
+}
+
+int tail(List<String> lines, int knots) {
+  var head = Knot(0, 0);
+  var tails = List<Knot>.filled(knots, Knot(0, 0));
   var visited = Set<String>();
 
   lines.forEach((line) {
     var direction = line.split(" ").first;
     var steps = int.parse(line.split(" ").last);
 
-    //for (int i = 0; i < steps; i++) {
     while (steps-- > 0) {
       if (direction == "R") {
-        head.y += 1;
+        head.y++;
       } else if (direction == "L") {
-        head.y -= 1;
+        head.y--;
       } else if (direction == "U") {
-        head.x += 1;
+        head.x++;
       } else if (direction == "D") {
-        head.x -= 1;
+        head.x--;
       }
 
-      if ((head.x - tail.x) == 2) {
-        tail.x += 1;
-        tail.y = head.y;
+      tails[0] = moveKnot(head, tails[0]);
+      for (int i = 1; i < tails.length; i++) {
+        var oldTails = tails[i];
+        tails[i] = moveKnot(tails[i - 1], tails[i]);
+        if (tails[i].equals(oldTails)) break;
       }
-      if ((head.x - tail.x) == -2) {
-        tail.x -= 1;
-        tail.y = head.y;
-      }
-      if ((head.y - tail.y) == 2) {
-        tail.y += 1;
-        tail.x = head.x;
-      }
-      if ((head.y - tail.y) == -2) {
-        tail.y -= 1;
-        tail.x = head.x;
-      }
-      visited.add(tail.toString());
+
+      visited.add(tails.last.toString());
     }
   });
+
+  //print(visited);
 
   return visited.length;
 }
 
-num part1({String fileName = "input.txt"}) => tail(readFileToLines(fileName));
+num part1({String fileName = "input.txt"}) => tail(readFileToLines(fileName), 1);
 
-num part2({String fileName = "input.txt"}) => -2;
+num part2({String fileName = "input.txt"}) => tail(readFileToLines(fileName), 9);
 
 void main(List<String> arguments) => print((Platform.environment["part"] ?? "part1") == "part1" ? part1() : part2());
