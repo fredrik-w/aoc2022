@@ -14,33 +14,23 @@ class Monkey {
   int test(int v) => v % this.divisor == 0 ? this.success : this.failure;
 }
 
-List<String> readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)).readAsLinesSync();
+String readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)).readAsStringSync();
 
-List<Monkey> parseNotes(List<String> notes) {
-  List<Monkey> monkeys = [];
-  var id = "", items = <int>[], operation = null, test = null, success = -1, failure = -1;
-  notes.map((n) => n.trim()).forEach((note) {
-    if (note.startsWith("Monkey"))
-      id = note.substring(7, 8);
-    else if (note.startsWith("Starting items"))
-      items = note.split(": ").last.split(",").map(int.parse).toList();
-    else if (note.startsWith("Operation")) {
-      var equation = note.split("= ").last;
-      if (equation.startsWith("old *"))
-        operation = (int v) => v * (int.tryParse(equation.split(" ").last) ?? v);
-      else
-        operation = (int v) => v + int.parse(equation.split(" ").last);
-    } else if (note.startsWith("Test"))
-      test = int.parse(note.split(" ").last);
-    else if (note.startsWith("If true"))
-      success = int.parse(note.split(" ").last);
-    else if (note.startsWith("If false")) {
-      failure = int.parse(note.split(" ").last);
-      monkeys.add(Monkey(id, items, operation!, test, success, failure));
-    }
-  });
-
-  return monkeys;
+List<Monkey> parseNotes(String notes) {
+  return notes
+      .split("\n\n")
+      .map((blob) => blob.split("\n"))
+      .map((parts) => Monkey(
+            parts[0].substring(7, 8),
+            parts[1].split(": ").last.split(",").map(int.parse).toList(),
+            parts[2].split("= ").last.startsWith("old *")
+                ? (int v) => v * (int.tryParse(parts[2].split(" ").last) ?? v)
+                : (int v) => v + int.parse(parts[2].split(" ").last),
+            int.parse(parts[3].split(" ").last),
+            int.parse(parts[4].split(" ").last),
+            int.parse(parts[5].split(" ").last),
+          ))
+      .toList();
 }
 
 num simulate(List<Monkey> monkeys, int Function(int v) worryAlgorithm, int rounds) {
