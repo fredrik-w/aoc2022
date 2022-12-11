@@ -14,24 +14,21 @@ class Monkey {
   int test(int v) => v % this.divisor == 0 ? this.success : this.failure;
 }
 
-String readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)).readAsStringSync();
+List<String> readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)).readAsStringSync().split("\n\n");
 
-List<Monkey> parseNotes(String notes) {
-  return notes
-      .split("\n\n")
-      .map((blob) => blob.split("\n"))
-      .map((parts) => Monkey(
-            parts[0].substring(7, 8),
-            parts[1].split(": ").last.split(",").map(int.parse).toList(),
-            parts[2].split("= ").last.startsWith("old *")
-                ? (int v) => v * (int.tryParse(parts[2].split(" ").last) ?? v)
-                : (int v) => v + int.parse(parts[2].split(" ").last),
-            int.parse(parts[3].split(" ").last),
-            int.parse(parts[4].split(" ").last),
-            int.parse(parts[5].split(" ").last),
-          ))
-      .toList();
-}
+List<Monkey> parseNotes(List<String> notes) => notes
+    .map((blob) => blob.split("\n"))
+    .map((parts) => Monkey(
+          parts[0].substring(7, 8),
+          parts[1].split(": ").last.split(",").map(int.parse).toList(),
+          parts[2].split("= ").last.startsWith("old *")
+              ? (int v) => v * (int.tryParse(parts[2].split(" ").last) ?? v)
+              : (int v) => v + int.parse(parts[2].split(" ").last),
+          int.parse(parts[3].split(" ").last),
+          int.parse(parts[4].split(" ").last),
+          int.parse(parts[5].split(" ").last),
+        ))
+    .toList();
 
 num simulate(List<Monkey> monkeys, int Function(int v) worryAlgorithm, int rounds) {
   for (int i = 1; i <= rounds; i++) {
