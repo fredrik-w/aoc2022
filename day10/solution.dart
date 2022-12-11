@@ -13,8 +13,7 @@ List<int> cycles(List<String> instructions) {
   return register;
 }
 
-int signalStrength(List<int> cycles) =>
-    [20, 60, 100, 140, 180, 220].map((cycle) => cycle * cycles[cycle - 1]).reduce((sum, v) => sum + v);
+int signalStrength(List<int> cycles) => [20, 60, 100, 140, 180, 220].fold(0, (sum, c) => sum + c * cycles[c - 1]);
 
 List<String> renderPixels(List<int> cycles) {
   List<List<String>> chars = [[], [], [], [], [], []];
