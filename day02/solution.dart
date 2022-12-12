@@ -1,11 +1,6 @@
 import 'dart:io';
 
-const LOST = 0;
-const DRAW = 3;
-const WON = 6;
-const ROCK = 1;
-const PAPER = 2;
-const SCISSORS = 3;
+const LOST = 0, DRAW = 3, WON = 6, ROCK = 1, PAPER = 2, SCISSORS = 3;
 
 enum Guide {
   AX("A X", ROCK + DRAW, SCISSORS + LOST),
