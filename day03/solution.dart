@@ -10,11 +10,9 @@ List<int> itemToPrio(List<String> common) => common.map((c) => codeToPrio(c.code
 
 List<String> readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)).readAsLinesSync();
 
-List<String> getCompartments(String rucksack) =>
-    [rucksack.substring(0, rucksack.length ~/ 2), rucksack.substring(rucksack.length ~/ 2)];
+List<String> getCompartments(String sack) => [sack.substring(0, sack.length ~/ 2), sack.substring(sack.length ~/ 2)];
 
-Iterable<List<String>> findMisplaced(List<String> rucksacks) =>
-    rucksacks.map((rucksack) => intersection(getCompartments(rucksack)));
+Iterable<List<String>> findMisplaced(List<String> sack) => sack.map((s) => intersection(getCompartments(s)));
 
 Iterable<List<String>> findGroupMisplaced(List<String> rucksacks) {
   List<List<String>> groups = [];
@@ -26,7 +24,7 @@ Iterable<List<String>> findGroupMisplaced(List<String> rucksacks) {
 }
 
 int calculatePrioSum(Iterable<List<String>> items) =>
-    items.map(itemToPrio).expand((e) => e).reduce((sum, val) => sum += val);
+    items.map(itemToPrio).expand((e) => e).reduce((sum, val) => sum + val);
 
 int part1({String fileName = "input.txt"}) => calculatePrioSum(findMisplaced(readFileToLines(fileName)));
 
