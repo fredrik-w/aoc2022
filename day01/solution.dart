@@ -4,8 +4,7 @@ List<String> readFileAsLines(String fileName) => File.fromUri(Uri.file(fileName)
 
 List<int> elfCalories(List<String> lines) => lines.fold(<int>[0], (elfs, calories) {
       if (calories == "") return elfs..add(0);
-      elfs.last += int.parse(calories);
-      return elfs;
+      return elfs..last += int.parse(calories);
     })
       ..sort((a, b) => a.compareTo(b));
 
