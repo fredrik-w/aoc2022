@@ -20,9 +20,6 @@ class Node {
   bool operator ==(Object other) => other is Node && other.x == this.x && other.y == this.y;
   @override
   int get hashCode => value * x * y;
-
-  @override
-  String toString() => "Node{value=${value} (${String.fromCharCode(value)}), x=${x}, y=${y}, [${edges.length}]}";
 }
 
 class Puzzle {
@@ -63,17 +60,14 @@ Puzzle graphInput(List<String> lines) {
 
 int bfsPath(Puzzle puzzle) {
   Set<Node> visited = Set();
-  Queue<Node> queue = Queue();
-  queue.add(puzzle.start);
+  Queue<Node> queue = Queue.from([puzzle.start]);
   while (queue.isNotEmpty) {
     var v = queue.removeFirst();
-    if (v == puzzle.end) {
-      return pathCount(puzzle, v);
-    }
+    if (v == puzzle.end) return pathCount(puzzle, v);
     for (var w in v.edges) {
       if (w.value <= v.value + 1 && !visited.contains(w)) {
         visited.add(w);
-        w.parent = v;
+        if (w != puzzle.start) w.parent = v;
         queue.addLast(w);
       }
     }
