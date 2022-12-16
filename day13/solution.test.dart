@@ -10,8 +10,8 @@ void main() {
     });
 
     test('part2', () {
-      expect(part2(fileName: "day13/input.example.txt"), equals(-2));
-      expect(part2(fileName: "day13/input.txt"), equals(-2));
+      expect(part2(fileName: "day13/input.example.txt"), equals(140));
+      expect(part2(fileName: "day13/input.txt"), equals(27690));
     });
   });
 }
