@@ -39,9 +39,7 @@ List<int> pairsInOrder(Map<List<dynamic>, List<dynamic>> pairs) {
 List<int> sortPackets(Map<List<dynamic>, List<dynamic>> pairs) {
   var dividerPackets = [ [[2]], [[6]] ];
   List<List<dynamic>> packets = [];
-  pairs.forEach((key, value) => packets
-    ..add(key)
-    ..add(value));
+  pairs.forEach((key, value) => packets..addAll([key, value]));
   (packets..addAll(dividerPackets)).sort(comparePackets);
   return [
     packets.indexOf(dividerPackets[0]) + 1,
