@@ -42,45 +42,33 @@ Puzzle parse(List<String> rocks) {
   return Puzzle(cave, maxDepth);
 }
 
-num simulateSand(Puzzle puzzle, bool Function(Puzzle, Point) doneCheck, {bool addColumns = false}) {
+num simulateSand(Puzzle puzzle, bool Function(Puzzle, Point) isDone, {bool addColumns = false}) {
   var cave = puzzle.cave;
   bool done = false;
   while (!done) {
     bool atRest = false;
     Point<int> current = Point(500, 0);
-    while (!atRest) {
+    while (!atRest && !done) {
       var start = current;
 
       current += Point(0, max(0, cave[current.x]!.sublist(current.y).indexWhere((c) => c != ".") - 1));
       if (addColumns) {
-        // if (!cave.containsKey(current.x - 1))
-        addOrExpandColumn(cave, puzzle.maxDepth, current.x - 1)[puzzle.maxDepth - 1] = "#";
-        // if (!cave.containsKey(current.x + 1))
-        addOrExpandColumn(cave, puzzle.maxDepth, current.x + 1)[puzzle.maxDepth - 1] = "#";
+        addOrExpandColumn(cave, puzzle.maxDepth, current.x - 1).last = "#";
+        addOrExpandColumn(cave, puzzle.maxDepth, current.x + 1).last = "#";
       }
-      if (cave[current.x - 1]?[current.y + 1] == ".") {
+      if (cave[current.x - 1]?[current.y + 1] == ".")
         current += Point<int>(-1, 1);
-      } else if (cave[current.x + 1]?[current.y + 1] == ".") {
-        current += Point<int>(1, 1);
-      }
-      atRest = current == start;
-      if (atRest) cave[current.x]![current.y] = "o";
-      if (doneCheck(puzzle, current)) {
-        done = true;
-        break;
-      }
+      else if (cave[current.x + 1]?[current.y + 1] == ".") current += Point<int>(1, 1);
+      if ((atRest = current == start)) cave[current.x]![current.y] = "o";
+      if (isDone(puzzle, current)) done = true;
     }
   }
   return cave.values.map((l) => l.where((e) => e == "o").length).reduce((sum, v) => sum + v);
 }
 
-Puzzle addFloor(Puzzle puzzle) {
-  var floorLevel = puzzle.maxDepth + 2;
-  var cave = puzzle.cave;
-
-  cave.keys.forEach((x) => addOrExpandColumn(cave, floorLevel, x)[floorLevel - 1] = "#");
-  return Puzzle(cave, floorLevel);
-}
+Puzzle addFloor(Puzzle puzzle) => Puzzle(
+    puzzle.cave..keys.forEach((x) => addOrExpandColumn(puzzle.cave, puzzle.maxDepth + 2, x).last = "#"),
+    puzzle.maxDepth + 2);
 
 num part1({String fileName = "input.txt"}) =>
     simulateSand(parse(readFileToLines(fileName)), (puzzle, current) => current.y + 1 >= puzzle.maxDepth);
