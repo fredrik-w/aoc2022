@@ -13,9 +13,9 @@ List<String> readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)
 Point<int> parsePosition(String pos) => Point(int.parse(pos.split(",").first), int.parse(pos.split(",").last));
 
 List<String> addOrExpandColumn(Map<int, List<String>> cave, int size, int x) {
-  var l = cave.putIfAbsent(x, () => List.filled(size, ".", growable: true));
-  if (l.length < size) l.addAll(List.filled(size - l.length, "."));
-  return l;
+  var column = cave.putIfAbsent(x, () => List.filled(size, ".", growable: true));
+  if (column.length < size) column.addAll(List.filled(size - column.length, "."));
+  return column;
 }
 
 Puzzle parse(List<String> rocks) {
@@ -42,27 +42,21 @@ Puzzle parse(List<String> rocks) {
   return Puzzle(cave, maxDepth);
 }
 
-num simulateSand(Puzzle puzzle) {
+num simulateSand(Puzzle puzzle, bool Function(Puzzle, Point) doneCheck, {bool addColumns = false}) {
   var cave = puzzle.cave;
-  // var keys = puzzle.cave.keys.toList()..sort((a, b) => a - b);
   bool done = false;
   while (!done) {
     bool atRest = false;
     Point<int> current = Point(500, 0);
     while (!atRest) {
-      // if (current.x == keys.first || current.x == keys.last) {
-      //   done = true;
-      //   break;
-      // }
-      // day14PrintCave(cave, puzzle.maxDepth, current: current);
       var start = current;
 
-      var yDrop = cave[current.x]!.sublist(current.y).indexWhere((c) => c != ".") - 1;
-      // if (yDrop > 0) current += Point(0, yDrop);
-      current += Point(0, max(0, yDrop));
-      if (current.y + 1 >= puzzle.maxDepth) {
-        done = true;
-        break;
+      current += Point(0, max(0, cave[current.x]!.sublist(current.y).indexWhere((c) => c != ".") - 1));
+      if (addColumns) {
+        // if (!cave.containsKey(current.x - 1))
+        addOrExpandColumn(cave, puzzle.maxDepth, current.x - 1)[puzzle.maxDepth - 1] = "#";
+        // if (!cave.containsKey(current.x + 1))
+        addOrExpandColumn(cave, puzzle.maxDepth, current.x + 1)[puzzle.maxDepth - 1] = "#";
       }
       if (cave[current.x - 1]?[current.y + 1] == ".") {
         current += Point<int>(-1, 1);
@@ -71,14 +65,28 @@ num simulateSand(Puzzle puzzle) {
       }
       atRest = current == start;
       if (atRest) cave[current.x]![current.y] = "o";
-      // if (atRest) day14PrintCave(cave, puzzle.maxDepth, current: current);
+      if (doneCheck(puzzle, current)) {
+        done = true;
+        break;
+      }
     }
   }
   return cave.values.map((l) => l.where((e) => e == "o").length).reduce((sum, v) => sum + v);
 }
 
-num part1({String fileName = "input.txt"}) => simulateSand(parse(readFileToLines(fileName)));
+Puzzle addFloor(Puzzle puzzle) {
+  var floorLevel = puzzle.maxDepth + 2;
+  var cave = puzzle.cave;
 
-num part2({String fileName = "input.txt"}) => -2;
+  cave.keys.forEach((x) => addOrExpandColumn(cave, floorLevel, x)[floorLevel - 1] = "#");
+  return Puzzle(cave, floorLevel);
+}
+
+num part1({String fileName = "input.txt"}) =>
+    simulateSand(parse(readFileToLines(fileName)), (puzzle, current) => current.y + 1 >= puzzle.maxDepth);
+
+num part2({String fileName = "input.txt"}) =>
+    simulateSand(addFloor(parse(readFileToLines(fileName))), (puzzle, current) => current == Point(500, 0),
+        addColumns: true);
 
 void main(List<String> arguments) => print((Platform.environment["part"] ?? "part1") == "part1" ? part1() : part2());
