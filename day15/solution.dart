@@ -2,45 +2,94 @@ import 'dart:io';
 import 'dart:math';
 
 class SensorBeacon {
-  final MPoint<int> sensor;
-  final MPoint<int> beacon;
+  final Point<int> sensor;
+  final Point<int> beacon;
+  final int distance;
 
-  const SensorBeacon(this.sensor, this.beacon);
+  SensorBeacon(this.sensor, this.beacon) : this.distance = (sensor.x - beacon.x).abs() + (sensor.y - beacon.y).abs();
 
-  List<int> coverageOnLine(int y) {
-    int distanceX, distanceY, distance = this.sensor.manhattanDistance(beacon);
-    if ((distanceY = (sensor.y - y).abs()) > distance) {
-      return [];
-    }
-    distanceX = distance - distanceY;
-    return List.generate(distanceX * 2 + 1, (idx) => idx + (sensor.x - distanceX));
+  Range? coverageOnLine(int y) {
+    int distanceY = (sensor.y - y).abs(), distanceX = distance - distanceY;
+    return distanceY > distance ? null : Range(start: sensor.x - distanceX, end: sensor.x + distanceX);
   }
 }
 
-class MPoint<T extends num> extends Point<T> {
-  const MPoint(T x, T y) : super(x, y);
+class Range {
+  final int start;
+  final int end;
 
-  T manhattanDistance(MPoint<T> other) => ((this.x - other.x).abs() + (this.y - other.y).abs()) as T;
+  const Range({required this.start, required this.end});
+
+  int length() => (this.end - this.start).abs() + 1;
+
+  Range? tryMerge(Range other) {
+    return canMerge(other)
+        ? Range(
+            start: min(min(start, other.start), min(end, other.end)),
+            end: max(max(start, other.start), max(end, other.end)))
+        : null;
+  }
+
+  bool canMerge(Range other) {
+    return (other.end >= start && other.end <= end) // ends in this range
+            ||
+            (other.start >= start && other.start <= end) // starts in this range
+            ||
+            (other.start >= start && other.end <= end) // fully inside this range
+            ||
+            (start >= other.start && end <= other.end) // this is fully inside other range
+        ;
+  }
 }
 
 List<String> readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)).readAsLinesSync();
 
 final RegExp InData = RegExp(r'^Sensor .+ x=(?<sx>\d+), y=(?<sy>\d+): .+ beacon .+ x=(?<bx>-?\d+), y=(?<by>-?\d+)$');
 
-MPoint<int> toPoint(RegExpMatch m, String x, String y) =>
-    MPoint(int.parse(m.namedGroup(x)!), int.parse(m.namedGroup(y)!));
+Point<int> toPoint(RegExpMatch m, String x, String y) =>
+    Point(int.parse(m.namedGroup(x)!), int.parse(m.namedGroup(y)!));
 
 Iterable<SensorBeacon> parse(List<String> lines) =>
     lines.map(InData.firstMatch).map((m) => SensorBeacon(toPoint(m!, "sx", "sy"), toPoint(m, "bx", "by")));
 
-num coveredArea(Iterable<SensorBeacon> report, int y) {
-  var coverage = report.map((r) => r.coverageOnLine(y)).expand((list) => list).toSet().length;
-  var beacons = report.map((r) => r.beacon).where((b) => b.y == y).toSet().length;
-  return coverage - beacons;
+Iterable<Range> lineCoverage(Iterable<SensorBeacon> report, int y) =>
+    report.map((r) => r.coverageOnLine(y)).whereType<Range>();
+
+Iterable<Range> mergeRanges(Iterable<Range> ranges) {
+  var sorted = ranges.toList()
+    ..sort((a, b) => a.start.compareTo(b.start) == 0 ? a.end.compareTo(b.end) : a.start.compareTo(b.start));
+  bool didMerge = true;
+  while (didMerge && sorted.length > 1) {
+    for (var i = 1; i < sorted.length; i++) {
+      if (sorted[i - 1].canMerge(sorted[i])) {
+        sorted[i - 1] = sorted[i - 1].tryMerge(sorted[i])!;
+        sorted.removeAt(i);
+        didMerge = true;
+        break;
+      }
+      didMerge = false;
+    }
+  }
+  return sorted;
+}
+
+num coveredArea(Iterable<SensorBeacon> report, int y) =>
+    mergeRanges(lineCoverage(report, y)).map((r) => r.length()).reduce((sum, val) => sum + val) -
+    report.map((r) => r.beacon).where((b) => b.y == y).toSet().length;
+
+num findDistressBeacon(Iterable<SensorBeacon> report, int limit) {
+  for (int y = 0; y <= limit; y++) {
+    var coverages = mergeRanges(lineCoverage(report, y));
+    if (coverages.length > 1) {
+      return (coverages.first.end + 1) * 4000000 + y;
+    }
+  }
+  throw Error();
 }
 
 num part1({String fileName = "input.txt", int y = 2000000}) => coveredArea(parse(readFileToLines(fileName)), y);
 
-num part2({String fileName = "input.txt"}) => -2;
+num part2({String fileName = "input.txt", int limit = 4000000}) =>
+    findDistressBeacon(parse(readFileToLines(fileName)), limit);
 
 void main(List<String> arguments) => print((Platform.environment["part"] ?? "part1") == "part1" ? part1() : part2());
