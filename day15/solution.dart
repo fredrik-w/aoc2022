@@ -22,24 +22,17 @@ class Range {
 
   int length() => (this.end - this.start).abs() + 1;
 
-  Range? tryMerge(Range other) {
-    return canMerge(other)
-        ? Range(
-            start: min(min(start, other.start), min(end, other.end)),
-            end: max(max(start, other.start), max(end, other.end)))
-        : null;
-  }
+  Range? tryMerge(Range other) => canMerge(other)
+      ? Range(
+          start: min(min(start, other.start), min(end, other.end)),
+          end: max(max(start, other.start), max(end, other.end)))
+      : null;
 
-  bool canMerge(Range other) {
-    return (other.end >= start && other.end <= end) // ends in this range
-            ||
-            (other.start >= start && other.start <= end) // starts in this range
-            ||
-            (other.start >= start && other.end <= end) // fully inside this range
-            ||
-            (start >= other.start && end <= other.end) // this is fully inside other range
-        ;
-  }
+  bool canMerge(Range other) =>
+      (other.end >= start && other.end <= end) || // ends in this range
+      (other.start >= start && other.start <= end) || // starts in this range
+      (other.start >= start && other.end <= end) || // fully inside this range
+      (start >= other.start && end <= other.end); // this is fully inside other range
 }
 
 List<String> readFileToLines(String fileName) => File.fromUri(Uri.file(fileName)).readAsLinesSync();
